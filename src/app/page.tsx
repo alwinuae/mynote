@@ -7,8 +7,7 @@ import { NoteEditor } from "@/components/NoteEditor"
 import { TaskListView } from "@/components/TaskListView"
 import { CalendarView } from "@/components/CalendarView"
 import { TimelineView } from "@/components/TimelineView"
-import { WindowsClassicView } from "@/components/WindowsClassicView"
-import { useStore, ThemeVariant, AppPlatform } from "@/lib/store"
+import { useStore, ThemeVariant } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { 
   Plus, 
@@ -19,9 +18,6 @@ import {
   Calendar,
   Settings,
   Palette,
-  Monitor,
-  Smartphone,
-  Globe,
   Trash2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -40,10 +36,8 @@ export default function HomePage() {
     tasks, 
     addNote, 
     setActiveView, 
-    themeVariant, 
-    setThemeVariant,
-    platform,
-    setPlatform
+    themeVariant,
+    setThemeVariant
   } = useStore()
 
   React.useEffect(() => {
@@ -171,7 +165,6 @@ export default function HomePage() {
   )
 
   const renderContent = () => {
-    if (platform === 'desktop' && activeView !== 'settings') return <WindowsClassicView />
     if (activeNoteId) return <NoteEditor />
 
     switch (activeView) {
@@ -194,30 +187,6 @@ export default function HomePage() {
              
              <div className="space-y-8">
                 <section className="space-y-4">
-                   <div className="flex items-center gap-3">
-                      <Globe className="h-4 w-4 text-primary" />
-                      <h3 className="text-sm font-bold uppercase tracking-widest">Platform Target</h3>
-                   </div>
-                   <div className="flex gap-4">
-                      {[
-                        { id: 'web', name: 'Web Portal', icon: Globe },
-                        { id: 'desktop', name: 'Legacy Desktop', icon: Monitor },
-                        { id: 'mobile', name: 'S-Pen Mobile', icon: Smartphone },
-                      ].map((p) => (
-                        <Button
-                          key={p.id}
-                          variant={platform === p.id ? 'default' : 'outline'}
-                          onClick={() => setPlatform(p.id as AppPlatform)}
-                          className="flex-1 h-14 text-[10px] uppercase font-bold gap-3"
-                        >
-                          <p.icon className="h-5 w-5" />
-                          {p.name}
-                        </Button>
-                      ))}
-                   </div>
-                </section>
-
-                <section className="space-y-4 pt-8 border-t border-primary/10">
                    <div className="flex items-center gap-3">
                       <Palette className="h-4 w-4 text-primary" />
                       <h3 className="text-sm font-bold uppercase tracking-widest">Visual Theme Gallery</h3>

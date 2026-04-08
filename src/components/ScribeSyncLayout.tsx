@@ -14,9 +14,6 @@ import {
   List as ListIcon,
   FolderOpen,
   Command,
-  Monitor,
-  Smartphone,
-  Globe,
   LogOut,
   LogIn
 } from "lucide-react"
@@ -39,17 +36,16 @@ import { useUser, useAuth } from "@/firebase"
 import { initiateAnonymousSignIn, signOutUser } from "@/firebase/non-blocking-login"
 
 export function ScribeSyncLayout({ children }: { children: React.ReactNode }) {
-  const { 
-    theme, 
-    setTheme, 
-    activeView, 
+  const {
+    theme,
+    setTheme,
+    activeView,
     setActiveView,
-    activeNoteId, 
-    notes, 
-    activeProjectId, 
-    projects, 
-    themeVariant,
-    platform
+    activeNoteId,
+    notes,
+    activeProjectId,
+    projects,
+    themeVariant
   } = useStore()
   const { user } = useUser()
   const [mounted, setMounted] = React.useState(false)
@@ -60,8 +56,7 @@ export function ScribeSyncLayout({ children }: { children: React.ReactNode }) {
     root.classList.remove("light", "dark");
     root.classList.add(theme);
     root.setAttribute('data-theme-variant', themeVariant);
-    root.setAttribute('data-platform', platform);
-  }, [theme, themeVariant, platform]);
+  }, [theme, themeVariant]);
 
   // Global Keyboard Shortcuts
   React.useEffect(() => {
@@ -99,9 +94,8 @@ export function ScribeSyncLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className={cn(
-        "flex min-h-screen w-full bg-background overflow-hidden font-body transition-all duration-300", 
-        theme, 
-        platform === 'mobile' && "max-w-md mx-auto border-x shadow-2xl relative"
+        "flex min-h-screen w-full bg-background overflow-hidden font-body transition-all duration-300",
+        theme
       )}>
         <AppSidebar />
         <main className="flex-1 flex flex-col min-h-0 relative">
@@ -139,19 +133,17 @@ export function ScribeSyncLayout({ children }: { children: React.ReactNode }) {
 }
 
 function AppSidebar() {
-  const { 
-    notes, 
-    setActiveNote, 
-    activeNoteId, 
-    addNote, 
-    activeView, 
-    setActiveView, 
-    projects, 
-    activeProjectId, 
-    setActiveProjectId, 
-    addProject,
-    platform,
-    setPlatform
+  const {
+    notes,
+    setActiveNote,
+    activeNoteId,
+    addNote,
+    activeView,
+    setActiveView,
+    projects,
+    activeProjectId,
+    setActiveProjectId,
+    addProject
   } = useStore()
   const { user } = useUser()
   const auth = useAuth()
@@ -189,28 +181,6 @@ function AppSidebar() {
               >
                 <item.icon className={cn("h-4 w-4", item.color)} />
                 <span className="text-[10px] uppercase font-black tracking-widest">{item.label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-
-        <div className="mt-8 mb-3 px-4 flex items-center justify-between group-data-[collapsible=icon]:hidden">
-          <h3 className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-50">Operational Mode</h3>
-        </div>
-        <SidebarMenu className="group-data-[collapsible=icon]:hidden">
-          {[
-            { id: 'web', icon: Globe, label: 'Web Portal' },
-            { id: 'mobile', icon: Smartphone, label: 'S-Pen Mobile' },
-            { id: 'desktop', icon: Monitor, label: 'Legacy Desktop' },
-          ].map((p) => (
-            <SidebarMenuItem key={p.id}>
-              <SidebarMenuButton 
-                isActive={platform === p.id} 
-                onClick={() => setPlatform(p.id as any)}
-                className="h-8 py-0"
-              >
-                <p.icon className="h-3.5 w-3.5 opacity-60" />
-                <span className="text-[9px] uppercase font-bold tracking-tight">{p.label}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
