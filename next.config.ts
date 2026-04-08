@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'export',
-  basePath: '/mynote',
+  basePath: process.env.GITHUB_PAGES === 'true' ? '/mynote' : '',
   images: {
     unoptimized: true,
   },

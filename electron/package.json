@@ -1,0 +1,30 @@
+{
+  "name": "alwin-note",
+  "version": "1.0.0",
+  "description": "Alwin Note - Professional Workspace",
+  "main": "main.js",
+  "author": "alwinuae",
+  "license": "MIT",
+  "build": {
+    "appId": "com.alwinuae.alwinnote",
+    "productName": "Alwin Note",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "out/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "icon.png"
+    }
+  },
+  "scripts": {
+    "build": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}
