@@ -1,0 +1,22 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-dashboard",
+      "description": "Clean modern workspace desk",
+      "imageUrl": "https://picsum.photos/seed/scribesync1/1200/800",
+      "imageHint": "workspace desk"
+    },
+    {
+      "id": "s-pen-demo",
+      "description": "Person using S-Pen on a high-end smartphone",
+      "imageUrl": "https://picsum.photos/seed/scribesync2/600/400",
+      "imageHint": "smartphone pen"
+    },
+    {
+      "id": "team-collaboration",
+      "description": "Team collaborating on digital notes",
+      "imageUrl": "https://picsum.photos/seed/scribesync3/600/400",
+      "imageHint": "team collaboration"
+    }
+  ]
+}
