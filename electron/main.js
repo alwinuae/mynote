@@ -1,5 +1,19 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, protocol, net } = require('electron');
 const path = require('path');
+const url = require('url');
+
+// Register custom protocol BEFORE app is ready
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+]);
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -13,21 +27,32 @@ function createWindow() {
     },
   });
 
-  // Load the static export
-  win.loadFile(path.join(__dirname, 'out', 'index.html'));
-
-  // Remove the menu bar
+  win.loadURL('app://./index.html');
   win.setMenuBarVisibility(false);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  // Map app:// requests to files in the 'out' directory
+  protocol.handle('app', (request) => {
+    let urlPath = new URL(request.url).pathname;
+
+    if (urlPath === '/') {
+      urlPath = '/index.html';
+    }
+
+    const filePath = path.join(__dirname, 'out', decodeURIComponent(urlPath));
+    return net.fetch(url.pathToFileURL(filePath).toString());
+  });
+
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
 
 app.on('window-all-closed', () => {
   app.quit();
-});
-
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
 });

@@ -247,16 +247,16 @@ function AppSidebar() {
       <SidebarFooter className="p-2 border-t border-primary/10 bg-muted/5">
         <div className="space-y-1">
           {user ? (
-             <SidebarMenuButton className="h-10 text-destructive hover:bg-destructive/5" onClick={() => signOutUser(auth)}>
+             <SidebarMenuButton className="h-10 text-destructive hover:bg-destructive/5" onClick={() => { if (auth) signOutUser(auth); }}>
               <LogOut className="h-4 w-4" />
               <span className="text-[10px] uppercase font-black tracking-widest">Terminate Session</span>
             </SidebarMenuButton>
-          ) : (
+          ) : auth ? (
              <SidebarMenuButton className="h-10 hover:bg-primary/5" onClick={() => initiateAnonymousSignIn(auth)}>
               <LogIn className="h-4 w-4" />
               <span className="text-[10px] uppercase font-black tracking-widest">System Login</span>
             </SidebarMenuButton>
-          )}
+          ) : null}
           <SidebarMenuButton className="h-10 hover:bg-primary/5" onClick={() => setActiveView('settings')}>
             <Settings className="h-4 w-4" />
             <span className="text-[10px] uppercase font-black tracking-widest">Configuration</span>
