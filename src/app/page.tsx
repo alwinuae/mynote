@@ -17,8 +17,7 @@ import {
   FileText,
   Calendar,
   Settings,
-  Palette,
-  Trash2
+  Palette
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"

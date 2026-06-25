@@ -27,7 +27,8 @@ import {
   SidebarMenuButton, 
   SidebarMenuItem, 
   SidebarProvider,
-  SidebarTrigger
+  SidebarTrigger,
+  useSidebar
 } from "@/components/ui/sidebar"
 import { Switch } from "@/components/ui/switch"
 import { useStore } from "@/lib/store"
@@ -47,7 +48,6 @@ export function ScribeSyncLayout({ children }: { children: React.ReactNode }) {
     projects,
     themeVariant
   } = useStore()
-  const { user } = useUser()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -147,14 +147,24 @@ function AppSidebar() {
   } = useStore()
   const { user } = useUser()
   const auth = useAuth()
+  const { isMobile, setOpenMobile } = useSidebar()
+
+  const closeMobileSidebar = React.useCallback(() => {
+    if (isMobile) setOpenMobile(false)
+  }, [isMobile, setOpenMobile])
+
+  const navigate = React.useCallback((action: () => void) => {
+    action()
+    closeMobileSidebar()
+  }, [closeMobileSidebar])
 
   const navItems = [
-    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'all-tasks', icon: CheckSquare, label: 'Task Repository' },
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', color: undefined },
+    { id: 'all-tasks', icon: CheckSquare, label: 'Task Repository', color: undefined },
     { id: 'my-day', icon: Zap, label: 'My Day Plan', color: 'text-amber-600' },
-    { id: 'calendar', icon: CalendarIcon, label: 'Date Archive' },
-    { id: 'timeline', icon: ListIcon, label: 'Temporal Registry' },
-  ]
+    { id: 'calendar', icon: CalendarIcon, label: 'Date Archive', color: undefined },
+    { id: 'timeline', icon: ListIcon, label: 'Temporal Registry', color: undefined },
+  ] as const
 
   return (
     <Sidebar collapsible="icon" className="border-r border-primary/20 bg-sidebar shadow-none">
@@ -176,7 +186,7 @@ function AppSidebar() {
             <SidebarMenuItem key={item.id}>
               <SidebarMenuButton 
                 isActive={activeView === item.id && !activeNoteId} 
-                onClick={() => setActiveView(item.id as any)}
+                onClick={() => navigate(() => setActiveView(item.id))}
                 className="h-10 transition-all hover:bg-primary/5"
               >
                 <item.icon className={cn("h-4 w-4", item.color)} />
@@ -195,6 +205,7 @@ function AppSidebar() {
             onClick={() => {
               const name = prompt("Enter project name:")
               if (name) addProject(name)
+              closeMobileSidebar()
             }}
           >
             <Plus className="h-3 w-3" />
@@ -206,7 +217,7 @@ function AppSidebar() {
             <SidebarMenuItem key={proj.id}>
               <SidebarMenuButton 
                 isActive={activeView === 'tasks' && activeProjectId === proj.id && !activeNoteId} 
-                onClick={() => setActiveProjectId(proj.id)}
+                onClick={() => navigate(() => setActiveProjectId(proj.id))}
                 className="pl-4 h-8"
               >
                 <FolderOpen className="h-3.5 w-3.5 mr-2 opacity-40" />
@@ -222,7 +233,7 @@ function AppSidebar() {
             variant="ghost" 
             size="icon" 
             className="h-5 w-5 hover:bg-primary/10 text-primary"
-            onClick={() => addNote({ title: 'NEW DOCUMENT', content: '', checklistMode: false })}
+            onClick={() => navigate(() => addNote({ title: 'NEW DOCUMENT', content: '', checklistMode: false }))}
           >
             <Plus className="h-3 w-3" />
           </Button>
@@ -233,7 +244,7 @@ function AppSidebar() {
             <SidebarMenuItem key={note.id}>
               <SidebarMenuButton 
                 isActive={activeNoteId === note.id} 
-                onClick={() => setActiveNote(note.id)}
+                onClick={() => navigate(() => setActiveNote(note.id))}
                 className="pl-4 h-8"
               >
                 <div className={cn("h-1.5 w-1.5 mr-2", activeNoteId === note.id ? "bg-primary" : "bg-primary/10")} />
@@ -247,17 +258,17 @@ function AppSidebar() {
       <SidebarFooter className="p-2 border-t border-primary/10 bg-muted/5">
         <div className="space-y-1">
           {user ? (
-             <SidebarMenuButton className="h-10 text-destructive hover:bg-destructive/5" onClick={() => { if (auth) signOutUser(auth); }}>
+             <SidebarMenuButton className="h-10 text-destructive hover:bg-destructive/5" onClick={() => { if (auth) signOutUser(auth); closeMobileSidebar(); }}>
               <LogOut className="h-4 w-4" />
               <span className="text-[10px] uppercase font-black tracking-widest">Terminate Session</span>
             </SidebarMenuButton>
           ) : auth ? (
-             <SidebarMenuButton className="h-10 hover:bg-primary/5" onClick={() => initiateAnonymousSignIn(auth)}>
+             <SidebarMenuButton className="h-10 hover:bg-primary/5" onClick={() => { initiateAnonymousSignIn(auth); closeMobileSidebar(); }}>
               <LogIn className="h-4 w-4" />
               <span className="text-[10px] uppercase font-black tracking-widest">System Login</span>
             </SidebarMenuButton>
           ) : null}
-          <SidebarMenuButton className="h-10 hover:bg-primary/5" onClick={() => setActiveView('settings')}>
+          <SidebarMenuButton className="h-10 hover:bg-primary/5" onClick={() => navigate(() => setActiveView('settings'))}>
             <Settings className="h-4 w-4" />
             <span className="text-[10px] uppercase font-black tracking-widest">Configuration</span>
           </SidebarMenuButton>

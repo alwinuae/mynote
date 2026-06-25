@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useStore, Task } from "@/lib/store"
+import { useStore } from "@/lib/store"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Clock, CheckCircle2, Star, Plus, Zap } from "lucide-react"

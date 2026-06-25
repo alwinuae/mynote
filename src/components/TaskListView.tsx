@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useStore, Task, ProjectList } from "@/lib/store"
+import { useStore, Task } from "@/lib/store"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { 
@@ -16,7 +16,6 @@ import {
   X,
   PlusCircle,
   RotateCcw,
-  Archive,
   Layers
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -59,7 +58,7 @@ export function TaskListView() {
   const today = new Date().toISOString().split('T')[0]
 
   const filteredTasks = React.useMemo(() => {
-    let list = tasks.filter(t => !t.completed)
+    const list = tasks.filter(t => !t.completed)
     
     if (activeView === 'my-day') {
       return list.filter(t => t.dueDate === today)
@@ -74,7 +73,7 @@ export function TaskListView() {
   }, [tasks, activeView, activeProjectId, today])
 
   const completedTasks = React.useMemo(() => {
-    let list = tasks.filter(t => t.completed)
+    const list = tasks.filter(t => t.completed)
     if (activeView === 'tasks') return list.filter(t => t.listId === activeProjectId)
     if (activeView === 'my-day') return list.filter(t => t.dueDate === today)
     return list

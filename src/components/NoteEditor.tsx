@@ -14,13 +14,10 @@ import {
   ListTodo,
   FileText,
   Loader2,
-  Check,
-  X,
   History,
   AlertTriangle
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
-import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -80,7 +77,7 @@ export function NoteEditor() {
       } else {
         toast({ title: "No tasks found" })
       }
-    } catch (error) {
+    } catch {
       toast({ title: "AI Error", variant: "destructive" })
     } finally {
       setIsExtracting(false)

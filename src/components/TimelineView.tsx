@@ -15,7 +15,6 @@ import {
   ChevronUp, 
   X, 
   PlusCircle,
-  Layers,
   ArrowRight
 } from "lucide-react"
 import { Input } from "@/components/ui/input"

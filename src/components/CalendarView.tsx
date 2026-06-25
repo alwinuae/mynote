@@ -4,7 +4,6 @@ import * as React from "react"
 import { useStore } from "@/lib/store"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileText, History, Search, ListTodo } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -39,7 +38,7 @@ export function CalendarView() {
       const matchesSearch = (task.title || "").toLowerCase().includes(search.toLowerCase())
       return isSameDate && matchesSearch
     })
-  }, [tasks, dateString, search])
+  }, [tasks, dateString, selectedDate, search])
 
   const CustomDayContent = React.useCallback(({ date }: { date: Date }) => {
     const dStr = format(date, 'yyyy-MM-dd')
