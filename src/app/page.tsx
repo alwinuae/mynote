@@ -20,13 +20,21 @@ import {
   Palette
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/firebase"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function HomePage() {
-  const [mounted, setMounted] = React.useState(false)
   const { user } = useUser()
+  const [isResetDialogOpen, setIsResetDialogOpen] = React.useState(false)
   const { 
     notes, 
     activeNoteId, 
@@ -39,15 +47,11 @@ export default function HomePage() {
     setThemeVariant
   } = useStore()
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const renderDashboard = () => (
     <div className="flex-1 flex flex-col overflow-auto bg-background animate-in fade-in duration-500">
-      <div className="p-12 space-y-12 max-w-6xl mx-auto w-full">
+      <div className="p-4 sm:p-8 lg:p-12 space-y-8 lg:space-y-12 max-w-6xl mx-auto w-full">
         <section>
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 lg:mb-10">
             <div>
               <h1 className="text-4xl font-headline font-bold text-foreground mb-2 uppercase tracking-tighter">
                 Alwin Note
@@ -135,18 +139,19 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {notes.slice(0, 6).map(note => (
-              <Card 
+              <button
                 key={note.id} 
-                className="cursor-pointer hover:border-primary/40 transition-all bg-card/30 border-primary/10 shadow-none hover:-translate-y-1"
+                type="button"
+                className="cursor-pointer hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all bg-card/30 border border-primary/10 shadow-none hover:-translate-y-1 text-left"
                 onClick={() => setActiveNote(note.id)}
               >
-                <CardHeader className="p-6 pb-2">
-                  <CardTitle className="text-sm font-bold uppercase truncate tracking-tight">{note.title || 'Untitled'}</CardTitle>
-                  <CardDescription className="line-clamp-2 text-[10px] font-medium leading-relaxed uppercase opacity-60">
+                <div className="p-6 pb-2">
+                  <div className="text-sm font-bold uppercase truncate tracking-tight">{note.title || 'Untitled'}</div>
+                  <div className="line-clamp-2 text-[10px] font-medium leading-relaxed uppercase opacity-60">
                     {note.content || 'System log empty...'}
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="p-6 pt-4 flex items-center justify-between border-t border-primary/5 mt-4">
+                  </div>
+                </div>
+                <div className="p-6 pt-4 flex items-center justify-between border-t border-primary/5 mt-4">
                   <div className="flex items-center gap-2">
                     <History className="h-3 w-3 text-muted-foreground opacity-40" />
                     <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">
@@ -154,8 +159,8 @@ export default function HomePage() {
                     </span>
                   </div>
                   <FileText className="h-3 w-3 text-primary/20" />
-                </CardFooter>
-              </Card>
+                </div>
+              </button>
             ))}
           </div>
         </section>
@@ -230,12 +235,7 @@ export default function HomePage() {
                               variant="destructive" 
                               size="sm" 
                               className="w-full text-[10px] uppercase font-bold"
-                              onClick={() => {
-                                if(confirm("Confirm Factory Reset? All records will be permanently purged.")) {
-                                  localStorage.clear();
-                                  window.location.reload();
-                                }
-                              }}
+                              onClick={() => setIsResetDialogOpen(true)}
                             >
                               Purge All Data
                             </Button>
@@ -252,11 +252,37 @@ export default function HomePage() {
     }
   }
 
-  if (!mounted) return null;
-
   return (
-    <ScribeSyncLayout>
-      {renderContent()}
-    </ScribeSyncLayout>
+    <>
+      <ScribeSyncLayout>
+        {renderContent()}
+      </ScribeSyncLayout>
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent className="sm:max-w-[420px] border-destructive/20 bg-card">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold uppercase tracking-widest">Confirm Factory Reset</DialogTitle>
+            <DialogDescription className="text-[11px] uppercase text-muted-foreground">
+              This will purge all local notes, tasks, projects, and preferences from this browser.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 mt-4">
+            <Button variant="ghost" size="sm" onClick={() => setIsResetDialogOpen(false)} className="text-[10px] uppercase font-bold">
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                localStorage.clear()
+                window.location.reload()
+              }}
+              className="text-[10px] uppercase font-bold"
+            >
+              Purge All Data
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

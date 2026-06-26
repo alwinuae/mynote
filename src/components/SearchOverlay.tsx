@@ -5,14 +5,22 @@ import { Search, BrainCircuit, Loader2, FileText, ChevronRight, X } from "lucide
 import { semanticNoteSearch } from "@/ai/flows/semantic-note-search"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useStore } from "@/lib/store"
+import { Note, useStore } from "@/lib/store"
 import { Badge } from "@/components/ui/badge"
 
 export function SearchOverlay({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = React.useState("")
-  const [results, setResults] = React.useState<any[]>([])
+  const [results, setResults] = React.useState<Note[]>([])
   const [isSearching, setIsSearching] = React.useState(false)
-  const { setActiveNote } = useStore()
+  const { notes, setActiveNote } = useStore()
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [onClose])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,8 +28,24 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
 
     setIsSearching(true)
     try {
-      const { notes } = await semanticNoteSearch({ searchQuery: query })
-      setResults(notes)
+      const searchText = query.trim().toLowerCase()
+      const localResults = notes.filter((note) =>
+        [note.title, note.content].some((value) =>
+          value.toLowerCase().includes(searchText)
+        )
+      )
+
+      if (localResults.length > 0) {
+        setResults(localResults)
+        return
+      }
+
+      const semanticResults = await semanticNoteSearch({ searchQuery: query })
+      setResults(
+        semanticResults.notes
+          .map((result) => notes.find((note) => note.id === result.noteId))
+          .filter((note): note is Note => Boolean(note))
+      )
     } catch (error) {
       console.error(error)
     } finally {
@@ -30,9 +54,10 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-start justify-center pt-[10vh]">
-      <div className="w-full max-w-2xl bg-card border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
-        <div className="p-4 border-b flex items-center gap-3">
+    <div className="fixed inset-0 bg-background/85 backdrop-blur-md z-50 flex items-start justify-center px-4 pt-[8vh]" role="dialog" aria-modal="true" aria-labelledby="global-search-title">
+      <div className="w-full max-w-2xl bg-card border border-primary/20 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="p-4 border-b border-primary/10 flex items-center gap-3">
+          <h2 id="global-search-title" className="sr-only">Search notes</h2>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <form onSubmit={handleSearch}>
@@ -40,8 +65,8 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search semantically (e.g., 'plans for my house')" 
-                className="pl-10 h-12 text-lg border-none shadow-none focus-visible:ring-0"
+                placeholder="SEARCH NOTES..." 
+                className="pl-10 h-12 text-sm sm:text-lg border-none shadow-none focus-visible:ring-0 uppercase font-bold bg-transparent"
               />
             </form>
           </div>
@@ -49,12 +74,12 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
             {isSearching ? (
               <Loader2 className="h-5 w-5 animate-spin text-accent" />
             ) : (
-              <Badge variant="outline" className="bg-accent/5 text-accent border-accent/20 flex items-center gap-1">
+              <Badge variant="outline" className="hidden sm:flex bg-accent/5 text-accent border-accent/20 items-center gap-1">
                 <BrainCircuit className="h-3.5 w-3.5" />
-                AI Enhanced
+                Local + AI
               </Badge>
             )}
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close search">
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -66,14 +91,14 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
               <div className="px-4 py-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">Semantic Matches</div>
               {results.map((note) => (
                 <button
-                  key={note.noteId}
+                  key={note.id}
                   onClick={() => {
-                    setActiveNote(note.noteId)
+                    setActiveNote(note.id)
                     onClose()
                   }}
-                  className="w-full flex items-center gap-4 p-4 hover:bg-primary/5 rounded-xl transition-colors text-left group"
+                  className="w-full flex items-center gap-4 p-4 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors text-left group"
                 >
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 bg-primary/10 flex items-center justify-center shrink-0">
                     <FileText className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -97,7 +122,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                     key={suggestion} 
                     variant="outline" 
                     size="sm" 
-                    className="rounded-full hover:bg-primary/5"
+                    className="hover:bg-primary/5"
                     onClick={() => setQuery(suggestion)}
                   >
                     {suggestion}

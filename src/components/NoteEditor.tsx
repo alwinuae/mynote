@@ -18,6 +18,7 @@ import {
   AlertTriangle
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import { localDateKey } from "@/lib/date"
 import {
   Dialog,
   DialogContent,
@@ -86,7 +87,7 @@ export function NoteEditor() {
 
   const confirmAddTasks = () => {
     selectedTasks.forEach(taskTitle => {
-      addTask({ title: taskTitle, dueDate: new Date().toISOString().split('T')[0] })
+      addTask({ title: taskTitle, dueDate: localDateKey() })
     })
     setIsPreviewOpen(false)
     toast({ title: "Tasks synchronized", description: `${selectedTasks.length} items added.` })
@@ -94,21 +95,21 @@ export function NoteEditor() {
 
   return (
     <div className="flex flex-col h-full bg-background animate-in fade-in duration-300">
-      <div className="px-6 h-14 border-b border-primary/10 flex items-center justify-between shrink-0">
-        <div className="flex-1 flex items-center gap-6">
+      <div className="px-4 sm:px-6 py-3 sm:h-14 border-b border-primary/10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0">
+        <div className="flex-1 flex items-center gap-6 min-w-0 w-full">
           <Input 
             value={activeNote.title}
             onChange={(e) => updateNote(activeNote.id, { title: e.target.value })}
-            className="text-xl font-headline font-bold border-none px-0 shadow-none focus-visible:ring-0 h-auto bg-transparent uppercase tracking-tighter"
+            className="text-base sm:text-xl font-headline font-bold border-none px-0 shadow-none focus-visible:ring-0 h-auto bg-transparent uppercase tracking-tighter truncate"
             placeholder="DOCUMENT TITLE"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button 
             variant="ghost"
             size="sm"
             onClick={() => updateNote(activeNote.id, { checklistMode: !activeNote.checklistMode })}
-            className={cn("h-9 gap-2 font-bold text-[10px] uppercase tracking-widest", activeNote.checklistMode && "text-primary bg-primary/5")}
+            className={cn("h-9 flex-1 sm:flex-none gap-2 font-bold text-[10px] uppercase tracking-widest", activeNote.checklistMode && "text-primary bg-primary/5")}
           >
             <ListTodo className="h-3.5 w-3.5" />
             Checklist
@@ -116,7 +117,7 @@ export function NoteEditor() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-9 text-[10px] font-bold uppercase gap-2 border-primary/20 hover:bg-primary/5"
+            className="h-9 flex-1 sm:flex-none text-[10px] font-bold uppercase gap-2 border-primary/20 hover:bg-primary/5"
             onClick={handleExtractTasks}
             disabled={isExtracting}
           >
@@ -128,6 +129,7 @@ export function NoteEditor() {
             size="icon" 
             className="h-9 w-9 text-destructive hover:bg-destructive/10"
             onClick={() => setIsDeleteConfirmOpen(true)}
+            aria-label="Delete note"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -140,13 +142,13 @@ export function NoteEditor() {
           value={activeNote.content}
           onKeyDown={handleKeyDown}
           onChange={(e) => updateNote(activeNote.id, { content: e.target.value })}
-          className="w-full h-full border-none shadow-none focus-visible:ring-0 text-[13px] leading-relaxed resize-none p-8 bg-transparent font-code selection:bg-primary/20"
+          className="w-full h-full border-none shadow-none focus-visible:ring-0 text-[13px] leading-relaxed resize-none p-4 sm:p-8 bg-transparent font-code selection:bg-primary/20"
           placeholder="COMMENCE DOCUMENTATION..."
         />
       </div>
 
-      <div className="px-6 h-10 border-t border-primary/10 flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] bg-muted/10">
-        <div className="flex gap-8">
+      <div className="px-4 sm:px-6 min-h-10 py-2 border-t border-primary/10 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] bg-muted/10">
+        <div className="flex flex-wrap gap-x-8 gap-y-2">
           <span className="flex items-center gap-2">
             <FileText className="h-3.5 w-3.5 opacity-40" />
             Words: {activeNote.content.split(/\s+/).filter(Boolean).length}

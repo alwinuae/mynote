@@ -3,28 +3,23 @@
 import * as React from "react"
 import { useStore } from "@/lib/store"
 import { Calendar } from "@/components/ui/calendar"
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileText, History, Search, ListTodo } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import { dateKeyFromIso } from "@/lib/date"
 
 export function CalendarView() {
   const { notes, tasks, setActiveNote, updateTask } = useStore()
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
   const [search, setSearch] = React.useState("")
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ""
 
   const filteredNotes = React.useMemo(() => {
     return notes.filter(note => {
-      const noteDate = new Date(note.createdAt).toISOString().split('T')[0]
+      const noteDate = dateKeyFromIso(note.createdAt)
       const isSameDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') === noteDate : true
       const matchesSearch = (note.title || "").toLowerCase().includes(search.toLowerCase()) || 
                            (note.content || "").toLowerCase().includes(search.toLowerCase())
@@ -42,7 +37,7 @@ export function CalendarView() {
 
   const CustomDayContent = React.useCallback(({ date }: { date: Date }) => {
     const dStr = format(date, 'yyyy-MM-dd')
-    const noteCount = notes.filter(n => new Date(n.createdAt).toISOString().split('T')[0] === dStr).length
+    const noteCount = notes.filter(n => dateKeyFromIso(n.createdAt) === dStr).length
     const taskCount = tasks.filter(t => t.dueDate === dStr).length
 
     return (
@@ -65,8 +60,6 @@ export function CalendarView() {
       </div>
     )
   }, [notes, tasks])
-
-  if (!mounted) return null
 
   return (
     <div className="flex flex-col h-full bg-background animate-in fade-in duration-300">
@@ -155,26 +148,27 @@ export function CalendarView() {
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {filteredNotes.map(note => (
-                  <Card 
+                  <button
                     key={note.id} 
-                    className="cursor-pointer hover:border-primary/40 transition-all bg-card border-primary/10 shadow-none rounded-none group"
+                    type="button"
+                    className="cursor-pointer hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all bg-card border border-primary/10 shadow-none rounded-none group text-left"
                     onClick={() => setActiveNote(note.id)}
                   >
-                    <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-[12px] font-bold uppercase truncate group-hover:text-primary transition-colors">{note.title || 'Untitled'}</CardTitle>
-                      <CardDescription className="line-clamp-1 text-[9px] uppercase font-medium opacity-50 mt-1">
+                    <div className="p-4 pb-2">
+                      <div className="text-[12px] font-bold uppercase truncate group-hover:text-primary transition-colors">{note.title || 'Untitled'}</div>
+                      <div className="line-clamp-1 text-[9px] uppercase font-medium opacity-50 mt-1">
                         {note.content || 'No content...'}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardFooter className="p-4 pt-2 flex items-center justify-between border-t border-primary/5 mt-2">
+                      </div>
+                    </div>
+                    <div className="p-4 pt-2 flex items-center justify-between border-t border-primary/5 mt-2">
                       <div className="flex items-center gap-2">
                         <History className="h-3 w-3 text-primary/40" />
                         <span className="text-[8px] text-muted-foreground uppercase font-black">
                           {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                    </CardFooter>
-                  </Card>
+                    </div>
+                  </button>
                 ))}
                 {filteredNotes.length === 0 && <p className="text-[10px] uppercase font-bold text-muted-foreground/20 italic py-8 text-center border border-dashed border-primary/10">No document logs recorded.</p>}
               </div>

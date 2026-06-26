@@ -27,6 +27,7 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { localDateKey } from "@/lib/date"
 
 export function TimelineView() {
   const { 
@@ -47,7 +48,7 @@ export function TimelineView() {
   const [expandedTaskId, setExpandedTaskId] = React.useState<string | null>(null)
   const [newStep, setNewStep] = React.useState("")
 
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = localDateKey()
 
   const sections = React.useMemo(() => {
     const list = tasks.filter(t => 
@@ -81,22 +82,32 @@ export function TimelineView() {
 
   const TimelineSection = ({ title, items, bg, textColor }: { title: string, items: Task[], bg: string, textColor: string }) => (
     <div className="space-y-6">
-      <div className={cn("flex items-center justify-between p-4 border border-primary/20 shadow-md transition-all", bg)}>
-        <h3 className={cn("text-[11px] font-black uppercase tracking-[0.4em]", textColor)}>{title}</h3>
+      <div className={cn("flex items-center justify-between gap-3 p-4 border border-primary/20 shadow-md transition-all", bg)}>
+        <h3 className={cn("text-[11px] font-black uppercase tracking-[0.22em] sm:tracking-[0.4em] truncate", textColor)}>{title}</h3>
         <Badge variant="outline" className="text-[11px] font-black border-white/40 px-3 bg-white/20">{items.length}</Badge>
       </div>
       <div className="space-y-2">
         {items.map(task => (
           <div key={task.id} className="group flex flex-col bg-card border border-primary/5 hover:border-primary/40 transition-all shadow-sm">
-            <div className="flex items-center gap-6 p-4">
+            <div className="flex items-start sm:items-center gap-3 sm:gap-6 p-4">
               <Checkbox 
                 checked={task.completed} 
                 onCheckedChange={(checked) => updateTask(task.id, { completed: !!checked })}
                 className="h-5 w-5 border-primary/30"
               />
-              <div 
-                className="flex-1 min-w-0 cursor-pointer"
+              <div
+                role="button"
+                tabIndex={0}
+                aria-expanded={expandedTaskId === task.id}
+                aria-label={`Toggle details for ${task.title}`}
+                className="flex-1 min-w-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    setExpandedTaskId(expandedTaskId === task.id ? null : task.id)
+                  }
+                }}
               >
                 <span className={cn(
                   "text-[12px] font-bold uppercase truncate block tracking-tight transition-colors",
@@ -104,7 +115,7 @@ export function TimelineView() {
                 )}>
                   {task.title}
                 </span>
-                <div className="flex items-center gap-6 mt-1.5">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-1 mt-1.5">
                    <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest group/date">
                       <CalendarIcon className="h-4 w-4 text-primary/60" />
                       <input 
@@ -112,7 +123,7 @@ export function TimelineView() {
                         value={task.dueDate || ""} 
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => updateTask(task.id, { dueDate: e.target.value })}
-                        className="bg-transparent border-none outline-none focus:text-primary cursor-pointer font-black text-foreground"
+                        className="bg-transparent border-none outline-none focus:text-primary cursor-pointer font-black text-foreground max-w-[8.5rem]"
                       />
                    </div>
                    {task.steps.length > 0 && (
@@ -123,11 +134,13 @@ export function TimelineView() {
                    )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <button onClick={(e) => { e.stopPropagation(); toggleTaskImportance(task.id); }}>
+              <div className="flex items-center gap-3 shrink-0">
+                <button type="button" aria-label={task.isImportant ? "Remove important marker" : "Mark task important"} onClick={(e) => { e.stopPropagation(); toggleTaskImportance(task.id); }}>
                   <Star className={cn("h-4 w-4 transition-all", task.isImportant ? "text-amber-500 fill-current" : "text-muted-foreground/10 hover:text-muted-foreground/30")} />
                 </button>
                 <button 
+                  type="button"
+                  aria-label={expandedTaskId === task.id ? "Collapse task details" : "Expand task details"}
                   className="text-muted-foreground/40 hover:text-foreground transition-colors"
                   onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
                 >
@@ -137,7 +150,7 @@ export function TimelineView() {
             </div>
 
             {expandedTaskId === task.id && (
-              <div className="px-14 pb-6 space-y-6 animate-in slide-in-from-top-1 duration-200 bg-muted/5 border-t border-primary/5">
+              <div className="px-6 sm:px-14 pb-6 space-y-6 animate-in slide-in-from-top-1 duration-200 bg-muted/5 border-t border-primary/5">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6 pt-6">
                   <div className="flex-1 w-full">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">Project Association</p>
@@ -182,7 +195,7 @@ export function TimelineView() {
                           onKeyDown={(e) => e.key === 'Enter' && updateTaskStep(task.id, step.id, e.currentTarget.value)}
                           className="bg-transparent border-none text-[11px] uppercase font-bold h-auto p-0 focus-visible:ring-0 placeholder:opacity-20 flex-1"
                         />
-                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/step:opacity-100 text-destructive" onClick={() => deleteTaskStep(task.id, step.id)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-100 sm:opacity-0 group-hover/step:opacity-100 text-destructive" onClick={() => deleteTaskStep(task.id, step.id)} aria-label="Delete step">
                           <X className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -214,13 +227,13 @@ export function TimelineView() {
 
   return (
     <div className="flex flex-col h-full bg-background animate-in fade-in duration-300">
-      <div className="px-12 h-20 border-b border-primary/10 flex items-center gap-12 bg-background/80 backdrop-blur-md shrink-0 z-40">
-        <div className="flex items-center gap-4 shrink-0">
+      <div className="px-4 sm:px-8 lg:px-12 py-4 border-b border-primary/10 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-12 bg-background/80 backdrop-blur-md shrink-0 z-40">
+        <div className="flex items-center gap-4 shrink-0 min-w-0">
           <Filter className="h-5 w-5 text-primary" />
-          <h2 className="text-[12px] font-black uppercase tracking-[0.5em] text-primary">Temporal Registry</h2>
+          <h2 className="text-[12px] font-black uppercase tracking-[0.22em] sm:tracking-[0.5em] text-primary truncate">Temporal Registry</h2>
         </div>
         
-        <form onSubmit={handleQuickAdd} className="flex items-center gap-4 flex-1 max-w-4xl">
+        <form onSubmit={handleQuickAdd} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-1 max-w-4xl w-full">
            <div className="relative flex-1">
              <Plus className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
              <Input 
@@ -230,7 +243,7 @@ export function TimelineView() {
               className="pl-12 h-12 w-full text-[12px] uppercase font-bold border-primary/20 bg-card focus-visible:ring-primary/40 rounded-none shadow-sm"
              />
            </div>
-           <Button type="submit" size="lg" className="h-12 px-10 text-[11px] uppercase font-black tracking-widest">
+           <Button type="submit" size="lg" className="h-12 px-6 sm:px-10 text-[11px] uppercase font-black tracking-widest">
              <ArrowRight className="h-4 w-4 mr-2" /> Commit
            </Button>
         </form>
@@ -246,8 +259,8 @@ export function TimelineView() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-12 lg:p-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-12 max-w-full mx-auto">
+      <div className="flex-1 overflow-auto p-4 sm:p-8 lg:p-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-12 max-w-full mx-auto">
           <TimelineSection title="Past (Overdue)" items={sections.past} bg="bg-red-600/5 text-red-600 border-red-500/20" textColor="text-red-700" />
           <TimelineSection title="Today (Focus)" items={sections.today} bg="bg-amber-600/5 text-amber-600 border-amber-500/20" textColor="text-amber-700" />
           <TimelineSection title="Future (Upcoming)" items={sections.future} bg="bg-blue-600/5 text-blue-600 border-blue-500/20" textColor="text-blue-700" />

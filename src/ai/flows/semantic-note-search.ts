@@ -17,6 +17,7 @@ export type SemanticNoteSearchOutput = {
 };
 
 export async function semanticNoteSearch(_input: SemanticNoteSearchInput): Promise<SemanticNoteSearchOutput> {
+  void _input;
   // Client-side fallback: returns empty results.
   // The actual search is handled by the SearchOverlay component using local store data.
   return { notes: [] };

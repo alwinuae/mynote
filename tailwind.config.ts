@@ -11,9 +11,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        body: ["Inter", "sans-serif"],
-        headline: ["Space Grotesk", "sans-serif"],
-        mono: ["Source Code Pro", "monospace"],
+        body: ["var(--font-inter)", "sans-serif"],
+        headline: ["var(--font-space-grotesk)", "sans-serif"],
+        mono: ["var(--font-source-code-pro)", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",

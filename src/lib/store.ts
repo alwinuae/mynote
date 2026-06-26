@@ -1,6 +1,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { localDateKey } from './date';
 
 export interface Step {
   id: string;
@@ -133,7 +134,7 @@ export const useStore = create<MyNoteState>()(
       setActiveNote: (id) => set({ activeNoteId: id, activeView: 'dashboard' }),
 
       addTask: (task) => set((state) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = localDateKey();
         const newTask = {
           title: 'NEW ACTION ITEM',
           completed: false,
@@ -152,7 +153,7 @@ export const useStore = create<MyNoteState>()(
         };
       }),
       updateTask: (id, updates) => set((state) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = localDateKey();
         return {
           tasks: state.tasks.map((t) => {
             if (t.id === id) {

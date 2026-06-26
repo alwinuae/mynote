@@ -28,6 +28,7 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { localDateKey } from "@/lib/date"
 
 export function TaskListView() {
   const { 
@@ -55,7 +56,7 @@ export function TaskListView() {
     setSelectedProjectId(activeProjectId)
   }, [activeProjectId])
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = localDateKey()
 
   const filteredTasks = React.useMemo(() => {
     const list = tasks.filter(t => !t.completed)
@@ -96,7 +97,7 @@ export function TaskListView() {
     setNewStep("")
   }
 
-  const StepInput = ({ taskId, step }: { taskId: string, step: any }) => {
+  const StepInput = ({ taskId, step }: { taskId: string, step: Task["steps"][number] }) => {
     const [val, setVal] = React.useState(step.title)
     return (
       <Input 
@@ -111,20 +112,33 @@ export function TaskListView() {
 
   const TaskItem = ({ task }: { task: Task }) => (
     <div className="group bg-card transition-all">
-      <div className="flex items-center gap-6 px-8 py-4 border-b border-primary/5">
+      <div className="flex items-start sm:items-center gap-3 sm:gap-6 px-4 sm:px-8 py-4 border-b border-primary/5">
         <Checkbox 
           checked={task.completed} 
           onCheckedChange={(checked) => updateTask(task.id, { completed: !!checked })}
           className="h-5 w-5 border-primary/30"
         />
-        <div className="flex-1 min-w-0" onClick={() => setEditingTaskId(editingTaskId === task.id ? null : task.id)}>
+        <div
+          role="button"
+          tabIndex={0}
+          className="flex-1 min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          onClick={() => setEditingTaskId(editingTaskId === task.id ? null : task.id)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              setEditingTaskId(editingTaskId === task.id ? null : task.id)
+            }
+          }}
+          aria-expanded={editingTaskId === task.id}
+          aria-label={`Toggle details for ${task.title}`}
+        >
           <span className={cn(
             "text-[13px] font-bold block truncate transition-colors uppercase tracking-tight",
             task.completed ? "line-through text-muted-foreground/40 font-normal" : "text-foreground"
           )}>
             {task.title}
           </span>
-          <div className="flex items-center gap-6 mt-1 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 mt-1 text-[9px] font-bold text-muted-foreground uppercase tracking-[0.14em] sm:tracking-[0.2em]">
             <div className="flex items-center gap-2 group/date">
               <CalendarIcon className="h-4 w-4 text-primary" />
               <input 
@@ -132,7 +146,7 @@ export function TaskListView() {
                 value={task.dueDate || ""} 
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => updateTask(task.id, { dueDate: e.target.value })}
-                className="bg-transparent border-none outline-none focus:text-primary cursor-pointer font-bold text-foreground"
+                className="bg-transparent border-none outline-none focus:text-primary cursor-pointer font-bold text-foreground max-w-[8.5rem]"
               />
             </div>
             {activeView !== 'tasks' && (
@@ -150,12 +164,13 @@ export function TaskListView() {
           </div>
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <Button 
             variant="ghost" 
             size="icon" 
             className="h-8 w-8"
             onClick={() => toggleTaskImportance(task.id)}
+            aria-label={task.isImportant ? "Remove important marker" : "Mark task important"}
           >
             <Star className={cn("h-4 w-4", task.isImportant ? "text-accent fill-current" : "text-muted-foreground/20")} />
           </Button>
@@ -165,6 +180,7 @@ export function TaskListView() {
               size="icon" 
               className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100"
               onClick={() => deleteTask(task.id)}
+              aria-label="Delete task"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -175,18 +191,19 @@ export function TaskListView() {
               size="icon" 
               className="h-8 w-8 text-primary"
               onClick={() => updateTask(task.id, { completed: false })}
+              aria-label="Restore task"
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingTaskId(editingTaskId === task.id ? null : task.id)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingTaskId(editingTaskId === task.id ? null : task.id)} aria-label={editingTaskId === task.id ? "Collapse task details" : "Expand task details"}>
             {editingTaskId === task.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
       </div>
 
       {editingTaskId === task.id && (
-        <div className="border-b border-primary/10 px-14 py-4 space-y-4 bg-muted/5 animate-in slide-in-from-top-1 duration-200">
+        <div className="border-b border-primary/10 px-6 sm:px-14 py-4 space-y-4 bg-muted/5 animate-in slide-in-from-top-1 duration-200">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Detailed Steps</p>
           <div className="space-y-2">
             {task.steps.map(step => (
@@ -199,7 +216,7 @@ export function TaskListView() {
                 <div className={cn("flex-1", step.completed && "opacity-40")}>
                   <StepInput taskId={task.id} step={step} />
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/step:opacity-100" onClick={() => deleteTaskStep(task.id, step.id)}>
+                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-100 sm:opacity-0 group-hover/step:opacity-100" onClick={() => deleteTaskStep(task.id, step.id)} aria-label="Delete step">
                   <X className="h-3 w-3" />
                 </Button>
               </div>
@@ -222,24 +239,24 @@ export function TaskListView() {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="px-8 h-14 border-b border-primary/10 flex items-center justify-between sticky top-0 z-30 bg-background/80 backdrop-blur-md">
+      <div className="px-4 sm:px-8 min-h-14 py-3 border-b border-primary/10 flex items-center justify-between gap-3 sticky top-0 z-30 bg-background/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <LayoutList className="h-4 w-4 text-primary" />
-          <h1 className="text-[11px] font-bold uppercase tracking-[0.3em]">{activeView.replace('-', ' ')}</h1>
+          <h1 className="text-[11px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] truncate">{activeView.replace('-', ' ')}</h1>
         </div>
         <Badge variant="outline" className="text-[10px] font-bold border-primary/20 px-3">{filteredTasks.length} PENDING</Badge>
       </div>
 
-      <div className="px-8 py-3 border-b bg-muted/10 border-primary/5 flex items-center gap-4">
-        <Plus className="h-4 w-4 text-primary" />
-        <form onSubmit={handleInlineAdd} className="flex-1 flex items-center gap-3">
+      <div className="px-4 sm:px-8 py-3 border-b bg-muted/10 border-primary/5 flex items-start sm:items-center gap-3 sm:gap-4">
+        <Plus className="h-4 w-4 text-primary mt-3 sm:mt-0 shrink-0" />
+        <form onSubmit={handleInlineAdd} className="flex-1 flex flex-col sm:flex-row sm:items-center gap-3">
           <Input 
             value={inlineTask}
             onChange={(e) => setInlineTask(e.target.value)}
             placeholder="ADD NEW RECORD (PRESS ENTER)..." 
             className="flex-1 h-10 bg-transparent border-none shadow-none focus-visible:ring-0 text-[12px] font-bold placeholder:text-muted-foreground/30 p-0 uppercase tracking-tight"
           />
-          <div className="w-48">
+          <div className="w-full sm:w-48">
             <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
               <SelectTrigger className="h-8 text-[9px] font-bold uppercase border-primary/10 bg-background/50">
                 <SelectValue placeholder="LIST" />
